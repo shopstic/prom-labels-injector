@@ -1,0 +1,7 @@
+/.idea
+
+# bin
+prom-labels-injector
+
+# Test binary, built with `go test -c`
+*.test
