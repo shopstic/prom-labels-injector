@@ -37,5 +37,6 @@ func metricsHandler(settings *config.Config, w http.ResponseWriter, r *http.Requ
 		//w.Write(body)
 	}
 	metrics := string(body)
+	w.WriteHeader(resp.StatusCode)
 	w.Write([]byte(label_injector.InjectLabels(metrics, &settings.LabelInjector)))
 }
