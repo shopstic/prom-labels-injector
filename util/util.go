@@ -15,7 +15,7 @@ func RemoveEmpty(values []string) []string {
 }
 
 func StringToUint16(value string) (uint16, error) {
-	i, err := strconv.ParseUint(value, 16, 16)
+	i, err := strconv.ParseUint(value, 10, 16)
 	if err != nil {
 		return 0, err
 	}
@@ -23,5 +23,5 @@ func StringToUint16(value string) (uint16, error) {
 }
 
 func Uint16ToString(value uint16) string {
-	return strconv.FormatUint(uint64(value), 16)
+	return strconv.FormatUint(uint64(value), 10)
 }

@@ -23,18 +23,18 @@ func main() {
 }
 
 func metricsHandler(settings *config.Config, w http.ResponseWriter, r *http.Request) {
-	resp, err1 := http.Get(settings.PrometheusTarget.Address)
-	defer resp.Body.Close()
-	body, err2 := io.ReadAll(resp.Body)
-	if err2 != nil {
-		log.Printf("Got error while [%v] while reading response body from target [%v]", err2, settings.PrometheusTarget.Address)
-		//fmt.Fprint(w, "")
+	resp, err := http.Get(settings.PrometheusTarget.Address)
+	if err != nil {
+		log.Printf("Got error [%v] while making request to target [%v]", err, settings.PrometheusTarget.Address)
+		w.WriteHeader(500)
 		return
 	}
-	if err1 != nil {
-		log.Printf("Got error [%v] while making request to target [%v]", err1, settings.PrometheusTarget.Address)
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Got error while [%v] while reading response body from target [%v]", err, settings.PrometheusTarget.Address)
+		w.WriteHeader(500)
 		return
-		//w.Write(body)
 	}
 	metrics := string(body)
 	w.WriteHeader(resp.StatusCode)
