@@ -7,18 +7,27 @@ defaults:
     shell: bash
 
 env:
-   IMAGE_REPOSITORY: public.ecr.aws/shopstic
-   IMAGE_NAME: prom-labels-injector
+  IMAGE_REPOSITORY: public.ecr.aws/shopstic
+  IMAGE_NAME: prom-labels-injector
 
 jobs:
   build:
     name: Build image
-    runs-on: [self-hosted, nix]
+    runs-on:
+      - self-hosted
+      - nix
+      - general
+      - ${{ matrix.arch.image }}-linux
+      - small
     strategy:
       matrix:
-        arch: [x86_64, aarch64]
+        arch:
+          - nix: x86_64
+            image: amd64
+          - nix: aarch64
+            image: arm64
     steps:
-      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+      - uses: actions/checkout@v3
 
       - name: Login to Amazon ECR
         uses: ./.github/actions/login-to-public-ecr
@@ -27,19 +36,14 @@ jobs:
 
       - name: Build container images
         run: |-
-          nix build -L -v '.#packages.${{ matrix.arch }}-linux.image'
+          nix build -L -v '.#packages.${{ matrix.arch.nix }}-linux.image'
 
       - name: Push
         env:
           GITHUB_SHA: ${{ github.sha }}
-          NIX_ARCH: ${{ matrix.arch }}
+          IMAGE_ARCH: ${{ matrix.arch.image }}
         shell: nix develop -v -c bash {0}
         run: |-
-          IMAGE_ARCH="amd64"
-          if [[ "${NIX_ARCH}" == "aarch64" ]]; then
-            IMAGE_ARCH="arm64"
-          fi
-
           IMAGE_TAG="dev-${IMAGE_ARCH}-${GITHUB_SHA}"
 
           skopeo --insecure-policy copy \
@@ -48,10 +52,15 @@ jobs:
 
   push-multi-arch:
     name: Push multi-arch image manifest
-    runs-on: [self-hosted, nix]
+    runs-on:
+      - self-hosted
+      - nix
+      - general
+      - arm64-linux
+      - small
     needs: [build]
     steps:
-      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+      - uses: actions/checkout@v3
 
       - name: Login to Amazon ECR
         uses: ./.github/actions/login-to-public-ecr

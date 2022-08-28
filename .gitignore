@@ -7,3 +7,4 @@ prom-labels-injector
 *.test
 /result
 /.vscode
+/.zsh_history
