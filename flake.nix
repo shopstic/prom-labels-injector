@@ -19,7 +19,7 @@
           pkgs = import nixpkgs {
             inherit system;
             overlays = [
-              gomod2nix.overlay
+              gomod2nix.overlays.default
             ];
           };
           hotPotPkgs = hotPot.packages.${system};
@@ -35,13 +35,12 @@
               "nix.serverPath" = pkgs.rnix-lsp + "/bin/rnix-lsp";
             };
           };
-          promLabelsInjector = pkgs.callPackage ./build.nix {};
+          promLabelsInjector = pkgs.callPackage ./build.nix { };
         in
         rec {
           defaultPackage = promLabelsInjector;
           packages = pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
             image = pkgs.callPackage ./image {
-              inherit (pkgs) dumb-init;
               inherit promLabelsInjector;
             };
           };
@@ -50,7 +49,7 @@
               mkdir -p ./.vscode
               cat ${vscodeSettings} > ./.vscode/settings.json
             '';
-            buildInputs = [ gomod2nix.defaultPackage.${system} ] ++ builtins.attrValues {
+            buildInputs = [ gomod2nix.packages.${system}.default ] ++ builtins.attrValues {
               inherit (hotPotPkgs)
                 manifest-tool
                 ;
